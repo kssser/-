@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link href="http://vjs.zencdn.net/7.3.0/video-js.min.css" rel="stylesheet">
+</head>
+<body>
+	<h2>推流使用ffmpeg RTMP协议到node-media-server，浏览器拉流分别使用RTMP协议和HTTP-FLV协议</h2>
+
+	<div style="overflow:hidden;">
+		<div style="float:left;">
+			<h3 style="margin:5px 0;">RTMP</h3>
+			<video id="myPlayer" class="video-js vjs-big-play-centered" style="width:600px;height:400px;">
+				<source src='rtmp://192.168.1.8/live/stream' type='rtmp/flv'/>
+				<p class="vjs-no-js">
+					To view this video please enable JavaScript, and consider upgrading to a web browser that
+					<a href="https://videojs.com/html5-video-support/" target="_blank">
+						supports HTML5 video
+					</a>
+				</p>
+			</video>
+			<script src="http://vjs.zencdn.net/7.3.0/video.min.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/videojs-flash@2/dist/videojs-flash.min.js"></script>
+			<script>
+				var options={
+					// techOrder:['flash','html5'],
+					controls:false,
+					preload:'auto'
+				};
+				var player=videojs('myPlayer',options);
+				player.ready(function(){
+					this.play();
+					this.on('ended',function(e){
+						console.log('ended');
+					});
+					this.on('loadeddata',function () {
+	                  console.log('loadeddata---渲染播放画面----');
+	                 });
+				});
+			</script>
+		</div>
+		<div style="float:left;margin-left:20px;">
+			<h3 style="margin:5px 0;">HTTP-FLV</h3>
+			<video id="myPlayer1" muted style="width:600px;height:400px;background-color:#000;"></video>
+			<script src="https://cdn.bootcss.com/flv.js/1.5.0/flv.min.js"></script>
+			<script>
+			    if(flvjs.isSupported()){
+			        var player = document.getElementById('myPlayer1');
+			        var flvPlayer = flvjs.createPlayer({
+			            type:'flv',
+			            url:'http://localhost:8000/live/stream.flv'
+			        });
+			        flvPlayer.attachMediaElement(player);
+			        flvPlayer.load();
+			        flvPlayer.play();
+			    }
+			</script>
+		</div>
+	</div>
+
+	<style>
+		.intro{
+			margin-top:30px;
+		}
+		th,td{
+			padding:5px 10px;
+			text-align:center;
+			background-color:#aaa;
+		}
+		dl dd{
+			margin:5px 0;
+			text-indent:1em;
+		}
+		dl i{
+			font-style:normal;
+			background-color:#ccc;
+		}
+	</style>
+	<div class="intro">
+		<table>
+			<thead>
+				<tr>
+					<th></th>
+					<th>RTMP</th>
+					<th>HTTP-FLV</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>延迟</td>
+					<td>超低</td>
+					<td>低</td>
+				</tr>
+				<tr>
+					<td>flash</td>
+					<td>需要</td>
+					<td>不需要</td>
+				</tr>
+				<tr>
+					<td>自动播放</td>
+					<td>可以</td>
+					<td>可以(需静音)</td>
+				</tr>
+				<tr>
+					<td>依赖</td>
+					<td>video.js</td>
+					<td>flv.js</td>
+				</tr>
+			</tbody>
+		</table>
+		<dl>
+			<dt>注：</dt>
+			<dd>2020年12月之后，chrome将不再支持flash</dd>
+			<dd>ffmpeg读取本地文件向nodeMediaServer推送HTTP-FLV流：ffmpeg -re -i <i>INPUT_FILE</i>.mp4 -c copy -f flv rtmp://<i>SERVER_IP</i>/live/<i>STREAM_NAME</i></dd>
+			<dd>ffmpeg读取RTSP流向nodeMediaServer推送RTMP流：ffmpeg -re -i rtsp://<i>SERVER_PATH</i> -c copy -f flv rtmp://<i>SERVER_IP</i>/live/<i>STREAM_NAME</dd>
+			<dd>ffplay拉RTMP流：ffplay rtmp://<i>SERVER_IP</i>/live/<i>STREAM_NAME</i></dd>
+			<dd>ffplay拉HTTP-FLV流：ffplay http://<i>SERVER_IP</i>:8000/live/<i>STREAM_NAME</i>.flv</dd>
+			<dd>-stream_loop -1(...-re -stream_loop -1 -i...)：循环播放</dd>
+		</dl>
+	</div>
+</body>
+</html>
